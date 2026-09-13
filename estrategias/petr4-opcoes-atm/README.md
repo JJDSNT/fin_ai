@@ -60,7 +60,7 @@ O ponto de partida continua sendo o **strike mais próximo** do preço de PETR4.
 
 | Grega | O que mede | Por que importa para quem **compra** a opção |
 |---|---|---|
-| **Delta (Δ)** | quanto o prêmio anda para cada R$ 1 em PETR4; ≈ "probabilidade" de terminar ITM | define o quão perto do dinheiro está. ATM ≈ 0,50; "quase ITM" fica logo abaixo |
+| **Delta (Δ)** | quanto o prêmio anda para cada R$ 1 em PETR4; ≈ "probabilidade" de terminar ITM | quantifica o quão perto do dinheiro está: ATM ≈ 0,50 (um pouco acima com juros altos); ITM acima, OTM abaixo |
 | **Gamma (Γ)** | quanto o delta muda para cada R$ 1 em PETR4 | é a **aceleração**: com gamma alta, um movimento a favor aumenta o delta e o ganho cresce mais que linearmente. É máxima perto do ATM |
 | **Theta (Θ)** | quanto o prêmio perde por dia parado | é o **custo de esperar**. Também é máximo perto do ATM e acelera perto do vencimento |
 | **Vega (ν)** | quanto o prêmio muda para cada 1 ponto de volatilidade implícita | risco de pagar IV alta e vendê-la mais baixa |
