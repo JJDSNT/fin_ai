@@ -16,11 +16,14 @@ Trilha de evolução. Marque os itens conforme avança e registre os detalhes em
 
 ## Fase 1 — MetaTrader 5: a plataforma
 
-- [ ] Instalar o MT5 e abrir conta demo
+- [ ] Instalar o MT5 **no Windows** e abrir conta demo B3 na corretora
 - [ ] Entender terminal × servidor da corretora, pasta de dados, MetaEditor, Strategy Tester
-- [ ] Saber se a conta é **netting**, **exchange** ou **hedging** e o que isso muda
+- [ ] Saber se a conta é **netting**, **exchange** ou **hedging** e o que isso muda (B3 = exchange)
 - [ ] Rodar `Scripts/FinAI/InfoSimbolo` nos ativos que interessam (ex.: WIN, WDO, EURUSD)
 - [ ] Anotar tick size, tick value, volume mínimo e modos de preenchimento de cada ativo
+- [ ] 🇧🇷 Entender vencimentos (letras dos meses), série contínua × contrato vigente e rolagem
+- [ ] 🇧🇷 Conhecer a grade horária da B3, os leilões e o horário de zeragem da corretora
+- [ ] 🇧🇷 Entender custos (emolumentos, corretagem) e IR de day trade
 
 📄 [docs/metatrader/01-visao-geral.md](docs/metatrader/01-visao-geral.md)
 
@@ -33,6 +36,7 @@ Trilha de evolução. Marque os itens conforme avança e registre os detalhes em
 - [ ] Enviar ordens com `CTrade` e tratar `retcode`
 - [ ] Compilar e ler o `EMACross.mq5` linha a linha
 - [ ] Modificar o EA: adicionar filtro de horário
+- [ ] 🇧🇷 Modificar o EA: zerar posições antes do fechamento e bloquear a série contínua fora do tester
 - [ ] Criar um EA próprio a partir de uma ideia sua
 
 📄 [docs/metatrader/02-mql5-essencial.md](docs/metatrader/02-mql5-essencial.md)
@@ -42,6 +46,7 @@ Trilha de evolução. Marque os itens conforme avança e registre os detalhes em
 ## Fase 3 — Backtest e otimização
 
 - [ ] Rodar backtest com **ticks reais** e custos realistas
+- [ ] 🇧🇷 Backtest em `WIN$N`/`WDO$N`: verificar até onde vão os ticks reais e incluir emolumentos
 - [ ] Interpretar o relatório (profit factor, drawdown, recovery factor, nº de trades)
 - [ ] Otimizar com algoritmo genético + período **forward**
 - [ ] Criar critério de otimização próprio com `OnTester()`
@@ -57,6 +62,7 @@ Trilha de evolução. Marque os itens conforme avança e registre os detalhes em
 - [ ] Configurar Python no Windows com o pacote `MetaTrader5`
 - [ ] Rodar `info_conta.py` e `exportar_candles.py`
 - [ ] Analisar candles com pandas (retornos, volatilidade, sazonalidade intraday)
+- [ ] 🇧🇷 Estudar liquidez por horário com `real_volume` e negócios (`copy_ticks_range`) do WIN/WDO
 - [ ] Prototipar um sinal em Python e comparar com o resultado do Strategy Tester
 
 📄 [docs/metatrader/03-python-integracao.md](docs/metatrader/03-python-integracao.md)

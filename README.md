@@ -6,6 +6,8 @@ Começou como um mapa de **sistemas de agentes de IA para finanças** e do **eco
 Agora evolui para a prática: **construir, testar e operar estratégias no MetaTrader 5** (MQL5 + Python),
 usando os conceitos de agentes como arquitetura de referência.
 
+> 🇧🇷 **Foco: B3**, com mini índice (WIN) e mini dólar (WDO). Forex aparece como referência.
+
 ---
 
 ## 🧭 Jornada
@@ -56,7 +58,7 @@ fin_ai/
 
 ## 🚀 Começando
 
-1. **Instale o MetaTrader 5** (Windows) e abra uma **conta demo** — na sua corretora (B3) ou em uma de forex.
+1. **Instale o MetaTrader 5 no Windows** (não no WSL) e peça uma **conta demo B3** à sua corretora. O servidor `MetaQuotes-Demo` só tem forex/CFD. Detalhes em [01-visao-geral](docs/metatrader/01-visao-geral.md#instalação-windows-não-wsl).
 2. **Leve o código MQL5 para o terminal** (a partir do WSL):
    ```bash
    # MT5 > Arquivo > Abrir pasta de dados  → copie o caminho
@@ -81,7 +83,7 @@ fin_ai/
 |---|---|
 | Agentes de IA em finanças | [docs/fundamentos/agentes-financeiros.md](docs/fundamentos/agentes-financeiros.md) |
 | Firmas quant / HFT | [docs/fundamentos/landscape-quant.md](docs/fundamentos/landscape-quant.md) |
-| MT5: visão geral, contas, B3 vs forex | [docs/metatrader/01-visao-geral.md](docs/metatrader/01-visao-geral.md) |
+| MT5 na B3: instalação, WIN/WDO, vencimentos, B3 vs forex | [docs/metatrader/01-visao-geral.md](docs/metatrader/01-visao-geral.md) |
 | MQL5 essencial | [docs/metatrader/02-mql5-essencial.md](docs/metatrader/02-mql5-essencial.md) |
 | Python ↔ MT5 | [docs/metatrader/03-python-integracao.md](docs/metatrader/03-python-integracao.md) |
 | Backtest e otimização | [docs/metatrader/04-backtest-e-otimizacao.md](docs/metatrader/04-backtest-e-otimizacao.md) |

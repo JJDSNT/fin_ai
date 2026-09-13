@@ -1,8 +1,9 @@
 """Exporta candles de um símbolo do MetaTrader 5 para CSV.
 
 Uso (Python do Windows):
+    python python/exportar_candles.py WIN$N M5 10000
+    python python/exportar_candles.py WDO$N M1 20000 --saida data/wdo_m1.csv
     python python/exportar_candles.py EURUSD H1 5000
-    python python/exportar_candles.py WIN$N M5 10000 --saida data/win_m5.csv
 
 O horário da coluna `time` é o do servidor da corretora.
 """

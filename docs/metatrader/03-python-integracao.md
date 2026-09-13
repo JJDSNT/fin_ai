@@ -59,6 +59,23 @@ finally:
 
 Os scripts em [`python/`](../../python/) seguem esse padrão com um context manager (`mt5_conexao.conectar()`).
 
+## 🇧🇷 Dados da B3
+
+```python
+rates = mt5.copy_rates_from_pos("WIN$N", mt5.TIMEFRAME_M5, 0, 5000)   # série contínua
+df = pd.DataFrame(rates)
+df["time"] = pd.to_datetime(df["time"], unit="s")
+
+# Na B3 existe volume real (contratos negociados). Prefira-o ao tick_volume.
+df["volume"] = df["real_volume"]
+print(df.groupby(df["time"].dt.hour)["volume"].mean())   # liquidez por hora do pregão
+```
+
+- **Série contínua** (`WIN$N`, `WDO$N`) para análise. **Contrato vigente** (`WINV26`) para ordens.
+- `real_volume` vem preenchido na B3. Em forex costuma ser 0 e só `tick_volume` tem informação.
+- Descobrir contratos disponíveis: `[s.name for s in mt5.symbols_get(group="WIN*")]`.
+- `copy_ticks_range` na B3 traz negócios (`COPY_TICKS_TRADE`), com preço e volume de cada negócio. É ótimo para estudar fluxo, mas pesado. Baixe por dia.
+
 ## Enviando ordens (com cuidado)
 
 ```python
@@ -80,11 +97,38 @@ print(mt5.order_check(req))                  # valida sem enviar
 # res = mt5.order_send(req); res.retcode == mt5.TRADE_RETCODE_DONE
 ```
 
+### 🇧🇷 Ordem limitada no WIN
+
+```python
+simbolo = "WINV26"                           # contrato vigente, nunca a série contínua
+info = mt5.symbol_info(simbolo)
+tick = mt5.symbol_info_tick(simbolo)
+
+def no_tick(preco):                          # WIN anda de 5 em 5
+    return round(preco / info.trade_tick_size) * info.trade_tick_size
+
+preco = no_tick(tick.bid - 100)
+req = {
+    "action": mt5.TRADE_ACTION_PENDING,
+    "symbol": simbolo,
+    "volume": 1.0,                           # contratos inteiros
+    "type": mt5.ORDER_TYPE_BUY_LIMIT,
+    "price": preco,
+    "sl": no_tick(preco - 200),
+    "tp": no_tick(preco + 400),
+    "magic": 777,
+    "type_time": mt5.ORDER_TIME_DAY,         # expira no fim do pregão
+    "type_filling": mt5.ORDER_FILLING_RETURN,
+}
+print(mt5.order_check(req))
+```
+
 Sempre `order_check` antes de `order_send`, e só em conta demo enquanto estiver aprendendo.
 
 ## Pegadinhas
 
-- **Horário**: o `time` dos candles vem no **horário do servidor da corretora**, não em UTC local. Cuidado ao cruzar com outras fontes.
+- **Horário**: o `time` dos candles vem no **horário do servidor da corretora**, não em UTC local. Nas corretoras da B3 costuma ser o de Brasília. Cuidado ao cruzar com outras fontes.
+- **Rolagem (B3)**: ao analisar a série contínua, os saltos entre vencimentos podem gerar "retornos" que não existiram. Verifique como a sua corretora monta a série.
 - **Símbolo invisível**: se o ativo não está na Observação do Mercado, chame `symbol_select(s, True)` antes.
 - **Histórico limitado**: o terminal só devolve o que tem baixado. Aumente *Ferramentas → Opções → Gráficos → Máx. de barras no gráfico* ou role o gráfico para trás.
 - **Algo Trading** precisa estar ligado para `order_send` funcionar.

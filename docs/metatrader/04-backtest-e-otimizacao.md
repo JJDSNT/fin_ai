@@ -14,10 +14,19 @@
 
 Fluxo sugerido: triagem com OHLC M1 → validação com **ticks reais**. Se o resultado muda muito entre os dois, desconfie.
 
+## 🇧🇷 Backtest na B3
+
+- **Símbolo**: use a série contínua (`WIN$N`, `WDO$N`). O contrato vigente tem histórico de poucos meses.
+- **Ticks reais**: o histórico de ticks vem do servidor da corretora e costuma ser limitado a alguns anos. Veja até onde vai antes de definir o período (o tester avisa quando faltam ticks e passa a gerar sintéticos).
+- **Rolagem**: a série contínua emenda vencimentos. Um EA que carrega posição pode "lucrar" ou "perder" com o salto da rolagem, algo que não acontece na vida real. EAs day trade que zeram todo dia evitam o problema.
+- **Horário**: restrinja entradas à janela de pregão e force a zeragem no fim do dia, **igual ao que fará em conta real**.
+- **Book e fila**: o tester não simula a fila do livro. Ordens limitadas são consideradas executadas quando o preço toca, o que é otimista. Em estratégias de poucos ticks, isso muda tudo.
+- **Mudança de regime**: horário do pregão, tamanho do contrato e margens mudaram ao longo dos anos. Períodos muito antigos podem não representar o mercado atual.
+
 ## Custos realistas
 
+- **B3**: corretagem e emolumentos, que em geral não vêm embutidos. Some manualmente ao analisar ou desconte no `OnTester()`. Referência para calcular: custo por contrato × 2 (entrada e saída) × nº de contratos × nº de trades.
 - **Forex**: spread (use o real dos ticks), comissão por lote, swap.
-- **B3**: corretagem e emolumentos, que em geral não vêm embutidos. Some manualmente ao analisar ou desconte no `OnTester()`.
 - **Slippage**: em ativos com pouca liquidez ou em notícias, o preço executado piora.
 - **Atraso de execução**: o tester tem opção de delay aleatório. Use para ver se a estratégia sobrevive.
 
@@ -58,7 +67,7 @@ double OnTester()
 - [ ] **Out-of-sample.** Use sempre o forward ou separe manualmente um período que você nunca olhou.
 - [ ] **Walk-forward.** Otimize em janelas móveis (ex.: 12 meses in-sample → 3 meses out-of-sample, anda 3 meses, repete) e junte só os resultados out-of-sample.
 - [ ] **Regimes diferentes.** Teste em alta, baixa, lateral, alta volatilidade (ex.: 2020) e baixa volatilidade.
-- [ ] **Outros ativos.** Uma lógica robusta costuma funcionar razoavelmente em ativos parecidos (WIN ↔ IND, EURUSD ↔ GBPUSD).
+- [ ] **Outros ativos.** Uma lógica robusta costuma funcionar razoavelmente em ativos parecidos (WIN ↔ IND, WDO ↔ DOL, EURUSD ↔ GBPUSD).
 - [ ] **Monte Carlo.** Embaralhe a ordem dos trades (dá para fazer em Python com o histórico exportado) e veja a distribuição de drawdowns.
 - [ ] **Demo antes de real.** Compare o resultado em demo com o backtest do mesmo período.
 

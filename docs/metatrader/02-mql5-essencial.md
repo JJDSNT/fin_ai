@@ -100,13 +100,59 @@ Esse padrão funciona em contas netting e hedging.
 - **Volume** precisa respeitar mínimo, máximo e step (`SYMBOL_VOLUME_MIN/MAX/STEP`).
 - As funções `NormalizePriceToTick` e `NormalizeVolume` estão em [`RiskManager.mqh`](../../mql5/Include/FinAI/RiskManager.mqh).
 
+## 🇧🇷 Particularidades da B3 no código
+
+**Filling mode.** Na B3 as ordens a mercado aceitam FOK/IOC conforme o símbolo, e ordens limitadas usam RETURN (a parte não executada fica no livro). `trade.SetTypeFillingBySymbol(_Symbol)` resolve para ordens a mercado. Para ordens pendentes:
+
+```mql5
+trade.SetTypeFilling(ORDER_FILLING_RETURN);
+trade.BuyLimit(1, price, _Symbol, sl, tp, ORDER_TIME_DAY);   // vale so para o dia
+```
+
+**Rode o EA no contrato vigente.** A série contínua (`WIN$N`) serve para backtest, mas não aceita ordens. Uma trava simples:
+
+```mql5
+// em OnInit
+if(!MQLInfoInteger(MQL_TESTER) && StringFind(_Symbol, "$") >= 0)
+  {
+   Print("Serie continua nao e negociavel. Use o contrato vigente (ex.: WINV26).");
+   return INIT_FAILED;
+  }
+```
+
+**Janela de horário.** `TimeCurrent()` retorna o horário do servidor da corretora, que normalmente é o de Brasília. Confirme comparando com o relógio do terminal.
+
+```mql5
+input int InpStartHour = 9,  InpStartMin = 15;   // inicio das entradas
+input int InpEndHour   = 17, InpEndMin   = 30;   // fim das entradas
+input int InpFlatHour  = 17, InpFlatMin  = 50;   // zera tudo (antes da zeragem da corretora)
+
+int MinutesOfDay(const datetime t) { MqlDateTime d; TimeToStruct(t, d); return d.hour * 60 + d.min; }
+
+bool InEntryWindow()
+  {
+   int now = MinutesOfDay(TimeCurrent());
+   return now >= InpStartHour * 60 + InpStartMin && now < InpEndHour * 60 + InpEndMin;
+  }
+
+bool MustFlatten() { return MinutesOfDay(TimeCurrent()) >= InpFlatHour * 60 + InpFlatMin; }
+```
+
+Os horários acima são **exemplos**. Ajuste pela grade atual da B3 e pelo horário de zeragem da sua corretora.
+
+**Estado da sessão.** Durante leilões e fora do pregão, ordens são rejeitadas (retcode `10018`, mercado fechado). Trate como situação normal, não como erro fatal.
+
+**Volume inteiro.** `SYMBOL_VOLUME_STEP` é 1: nada de 0,5 contrato. O `NormalizeVolume` já arredonda para baixo.
+
 ## Armadilhas
 
 | Armadilha | Sintoma | Solução |
 |---|---|---|
 | Algo Trading desligado | retcode 10027 | ligar o botão na barra / permitir na aba *Comum* do EA |
 | Usar candle 0 no sinal | backtest lindo, conta real ruim | usar candles fechados |
-| Preço fora do tick | "Invalid price" | normalizar pelo tick size |
+| Preço fora do tick | "Invalid price" (ex.: WIN em 128432) | normalizar pelo tick size |
+| EA na série contínua (B3) | ordens rejeitadas | rodar no contrato vigente; trocar na rolagem |
+| Esquecer a zeragem (B3) | posição carregada sem garantia | fechar tudo antes do horário da corretora |
 | Filling mode errado | "Unsupported filling mode" | `SetTypeFillingBySymbol` |
 | Stop muito perto | "Invalid stops" | respeitar `SYMBOL_TRADE_STOPS_LEVEL` |
 | Acentos no código | texto corrompido no log | MetaEditor pode ler UTF-8 sem BOM como ANSI; os arquivos deste repo usam só ASCII |
