@@ -42,6 +42,8 @@ fin_ai/
 │   │   ├── 04-backtest-e-otimizacao.md
 │   │   └── 05-gestao-de-risco.md
 │   └── arquitetura-agentes-mt5.md  # ponte: agentes de IA ↔ MT5
+├── estrategias/                  # minhas estratégias (fichas + código específico)
+│   └── petr4-opcoes-atm/         # opções ATM de PETR4 com OCO pré-preenchida
 ├── mql5/                         # espelha a pasta MQL5/ do terminal
 │   ├── Experts/FinAI/EMACross.mq5
 │   ├── Include/FinAI/RiskManager.mqh
@@ -89,6 +91,7 @@ fin_ai/
 | Backtest e otimização | [docs/metatrader/04-backtest-e-otimizacao.md](docs/metatrader/04-backtest-e-otimizacao.md) |
 | Gestão de risco | [docs/metatrader/05-gestao-de-risco.md](docs/metatrader/05-gestao-de-risco.md) |
 | Agentes de IA sobre o MT5 | [docs/arquitetura-agentes-mt5.md](docs/arquitetura-agentes-mt5.md) |
+| 🎯 Minhas estratégias | [estrategias/](estrategias/README.md) |
 
 ---
 
