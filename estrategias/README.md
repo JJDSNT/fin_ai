@@ -6,7 +6,7 @@ Cada estratégia tem a própria pasta com uma ficha (`README.md`) contendo hipó
 
 | Estratégia | Ativo | Status |
 |---|---|---|
-| [Opções ATM de PETR4 com OCO pré-preenchida](petr4-opcoes-atm/README.md) | PETR4 + opções | 📝 rascunho |
+| [Opções ATM de PETR4 com OCO pré-preenchida](petr4-opcoes-atm/README.md): call na entrada, put protetora para travar piso | PETR4 + opções | 📝 rascunho |
 
 Status: 📝 rascunho → 🔬 validando sinal → 🧪 demo → ✅ real (tamanho mínimo) → 🗄️ arquivada
 

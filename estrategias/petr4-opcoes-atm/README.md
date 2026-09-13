@@ -8,8 +8,11 @@
 
 Acompanhar **PETR4** (ativo-objeto) com pelo menos **4 indicadores**. Quando eles concordarem numa direção, um **script no MT5** monta uma operação **pré-preenchida** na opção **quase dentro do dinheiro** (ATM / levemente OTM) do **próximo vencimento**, com **saída OCO** (stop + alvo). A operação só vai para o mercado depois da minha confirmação.
 
-- Alta → **compra de call**
-- Baixa → **compra de put** *(a decidir, ver D2)*
+**Regras estruturais:**
+- **Uma operação ativa por vez.**
+- A operação **começa sempre com compra de call** (sinal de alta).
+- **Put só entra como perna protetora** de uma call aberta, com vencimento e quantidade equivalentes. Nunca existe put sozinha, e sinal de baixa **não** abre operação.
+- Objetivo da put: travar um **piso no vencimento**. Se a call já andou o suficiente, o pior cenário vira um resultado positivo conhecido, a **"renda fixa"**, mantendo o ganho aberto para os dois lados (seção 6).
 
 ## Por que opções?
 
@@ -129,6 +132,8 @@ Exemplo: capital R$ 10.000, 2% = R$ 200, prêmio R$ 0,80 → 250 → **200 opç�
 
 Se nem 100 opções couberem no limite, **não opera**.
 
+A **put protetora** usa a mesma quantidade da call e não consome novo orçamento de risco, **desde que o piso seja ≥ 0**: nesse caso o pior cenário da operação deixa de ser perda.
+
 ---
 
 ## 4. Ordem OCO pré-preenchida
@@ -145,11 +150,23 @@ O MT5 **não tem ordem OCO nativa** (duas ordens pendentes ligadas). Existem doi
 **Proposta:** usar **os dois**.
 - **B** é a saída principal: stop e alvo em PETR4, com base no ATR.
 - **A** é a proteção de emergência no preço da opção, mais larga (ex.: SL −60% do prêmio).
+- Quando a **put protetora** entra, o SL/TP da call é removido e as duas pernas passam a ser fechadas **sempre juntas** (seção 6).
 
 ### Fluxo do script (semi-automático)
 
+O script olha primeiro o **estado da operação** (posições e ordens pendentes em opções com `SYMBOL_BASIS == "PETR4"` e o magic da estratégia) e age conforme o caso:
+
+| Estado | O que o script faz |
+|---|---|
+| Nenhuma operação | fluxo de **entrada na call** (passos abaixo) |
+| Ordem de entrada pendente | mostra a ordem e oferece cancelar; **não** abre outra |
+| Call aberta, sem put | mostra o status e a **simulação da put protetora** (piso × vender a call × CDI, seção 6); pede confirmação |
+| Call + put abertas | mostra o piso travado e o resultado atual; oferece **fechar as duas pernas juntas** |
+
+Fluxo de entrada:
+
 1. Arrasto o script para o gráfico de **PETR4**.
-2. O script calcula os 4 indicadores e o score e define a direção.
+2. O script calcula os 4 indicadores e o score. Só segue com **sinal de alta** (sinal de baixa não abre operação).
 3. Escolhe a opção pelas gregas e pela liquidez (seção 2).
 4. Calcula entrada (limitada no preço médio entre bid e ask), quantidade, SL/TP da opção e níveis de saída em PETR4.
 5. Mostra um resumo e pede confirmação:
@@ -176,16 +193,90 @@ Números acima são ilustrativos.
 - **Saída por tempo**: se não atingir nada em N pregões, zera (o theta está consumindo o prêmio).
 - **Saída antes do vencimento**: zerar até X dias úteis antes; não levar ao exercício.
 - **Evento**: não abrir posição com resultado trimestral, data ex de dividendos ou decisão relevante da empresa dentro do horizonte da operação.
+- **Depois da put protetora**, as saídas mudam (ver seção 6).
 
 ---
 
-## 6. ❓ Decisões em aberto
+## 6. Put protetora: travando a "renda fixa"
+
+### A conta
+
+Com uma **call de strike K_call** comprada por `prêmio_call` e uma **put de strike K_put ≥ K_call**, mesmo vencimento e mesma quantidade, o valor das duas no vencimento **nunca é menor que K_put − K_call**, qualquer que seja o preço de PETR4:
+
+| PETR4 no vencimento | Call vale | Put vale | Soma |
+|---|---|---|---|
+| abaixo de K_call | 0 | K_put − S | **≥ K_put − K_call** |
+| entre K_call e K_put | S − K_call | K_put − S | **= K_put − K_call** |
+| acima de K_put | S − K_call | 0 | **≥ K_put − K_call** |
+
+```
+piso_no_vencimento = (K_put − K_call) − prêmio_call_pago − prêmio_put
+```
+
+Se o **piso ≥ 0**, a pior hipótese é um resultado positivo conhecido, e a operação continua ganhando mais se PETR4 andar forte para **qualquer** lado.
+
+### ⚠️ "Equivalente" precisa ser strike da put ACIMA do strike da call
+
+Com o **mesmo strike**, K_put − K_call = 0 e o piso é **−(prêmio_call + prêmio_put)**. Não existe renda fixa nenhuma: é um straddle, que perde tudo se PETR4 terminar no strike. A trava só aparece quando PETR4 já subiu e a put comprada tem strike acima do da call.
+
+**Definição proposta de "put equivalente":** mesmo vencimento, mesma quantidade, strike ≥ strike da call, escolhido entre os strikes perto do preço atual de PETR4 pelas gregas e pelo piso resultante.
+
+### Exemplo
+
+Call 38,50 comprada a **1,50** (seção 4). Faltando 21 dias, IV 28%, juros 14%:
+
+| PETR4 hoje | Put | Custo da put | Piso no vencimento | Vender a call agora |
+|---|---|---|---|---|
+| 40,30 | 38,50 (mesmo strike) | 0,32 | **−1,82** ❌ | +0,93 |
+| 40,30 | 40,50 (mais próximo) | 1,02 | **−0,52** ❌ | +0,93 |
+| 40,30 | 42,50 | 2,27 | +0,23 | +0,93 |
+| 42,40 | 38,50 (mesmo strike) | 0,07 | **−1,57** ❌ | +2,78 |
+| 42,40 | 40,50 | 0,33 | +0,17 | +2,78 |
+| 42,40 | **42,50 (mais próximo)** | **1,02** | **+1,48** ✅ | +2,78 |
+
+Resultado no vencimento da última linha (call 38,50 a 1,50 + put 42,50 a 1,02), por opção:
+
+| PETR4 | 34,00 | 38,50 | 40,00 | 42,50 | 46,00 | 50,00 |
+|---|---|---|---|---|---|---|
+| Resultado | +5,98 | **+1,48** | **+1,48** | **+1,48** | +4,98 | +8,98 |
+
+O que a tabela mostra:
+- A proteção só trava renda fixa **depois que PETR4 subiu bem acima do strike da call**. Com PETR4 a 40,30, o strike mais próximo ainda deixa piso negativo.
+- **Custo de oportunidade**: vender a call agora dá +2,78 garantido. A put trava +1,48 e troca a diferença pela chance de ganhar mais com um movimento forte. É uma escolha consciente, não um almoço grátis.
+- A put só melhora o pior cenário quando **K_put − K_call > prêmio_put**.
+
+### Regras propostas
+
+1. A put só pode ser comprada com uma **call da operação aberta**: mesmo vencimento, mesma quantidade, **K_put ≥ K_call**.
+2. Só compra se **piso ≥ piso mínimo** (proposta: ≥ 0, ou seja, "renda fixa na pior hipótese").
+3. O script mostra lado a lado: **piso com a put** × **ganho vendendo a call agora** × **CDI do período** sobre o capital empregado.
+4. **As pernas andam juntas**: fechar a call obriga a fechar a put no mesmo momento (senão sobra put sozinha, que viola a regra). Ao adicionar a put, o **SL/TP da call no servidor é removido**, porque um stop disparado deixaria a put órfã.
+5. **Saída da operação protegida**:
+   - movimento forte para qualquer lado → fecha as duas com resultado bem acima do piso
+   - perto do vencimento (ex.: 2–3 dias úteis) → fecha as duas no mercado (≈ piso ou melhor)
+   - não levar ao exercício sem planejar (ver riscos)
+6. Continua sendo **uma operação**: com call + put abertas, nenhuma nova entrada é permitida.
+
+### Pontos de atenção
+
+- **O piso vale no vencimento.** Antes disso, o valor de mercado das duas pode ficar abaixo do piso (spread, volatilidade), mas converge para ele.
+- **Dois spreads**: cada perna paga spread na entrada e na saída. Descontar no cálculo do piso (usar ask na compra e bid estimado na saída).
+- **Exercício**: se as duas terminarem dentro do dinheiro (PETR4 entre os strikes), o exercício compra ações a K_call e vende a K_put. Isso exige capital/garantia e tem custos de exercício. **Preferível zerar as pernas antes do vencimento.**
+- **Dividendos**: a B3 desconta o provento dos **dois** strikes, então K_put − K_call se mantém.
+- **Comparar com o CDI**: se o piso travado render menos que o CDI sobre o capital empregado, vender a call é melhor.
+
+---
+
+## 7. ❓ Decisões em aberto
 
 | # | Decisão | Opções | Minha sugestão |
 |---|---|---|---|
 | D1 | Checagens das gregas sobre o strike mais próximo | faixa de delta, limite de theta/prêmio, IV × HV, desempate | Δ 0,40–0,60, \|Θ\| ≤ 3%/dia, IV ≤ 1,3×HV20, desempate por Γ/\|Θ\| |
 | D1b | Fonte das gregas | corretora (`SYMBOL_PRICE_*`) / cálculo próprio | corretora se disponível, cálculo próprio para conferir |
-| D2 | Operar baixa com puts? | só calls / calls e puts | começar **só calls**, adicionar puts depois |
+| ~~D2~~ | ~~Operar baixa com puts?~~ | ✅ **decidido**: uma operação por vez; put só como perna protetora de call aberta | — |
+| D9 | "Put equivalente" | mesmo strike / strike ≥ da call perto do preço atual | **K_put ≥ K_call**, mesmo vencimento e quantidade (mesmo strike não trava piso) |
+| D10 | Quando comprar a put | piso ≥ 0 / piso ≥ X% do ganho atual / sinal de baixa / decisão manual | script calcula e sugere quando **piso ≥ 0**; decisão final manual |
+| D11 | Referência de comparação | só piso / piso × vender a call × CDI | mostrar os três lado a lado |
 | D3 | "Próximo vencimento" | série mais próxima / série seguinte | mais próxima com ≥ 10 d.u. |
 | D4 | Timeframe e horizonte | intraday / swing 2–5 dias | swing em H1 + filtro D1 |
 | D5 | Quais 4 indicadores | tabela da seção 1 ou outros | tabela da seção 1 como ponto de partida |
@@ -195,7 +286,7 @@ Números acima são ilustrativos.
 
 ---
 
-## 7. ⚠️ Riscos e limitações
+## 8. ⚠️ Riscos e limitações
 
 - **Backtest de opções no MT5 é fraco**: o servidor normalmente remove o histórico de opções vencidas. Não dá para rodar o Strategy Tester direto na opção de meses atrás.
 - **Theta**: cada dia parado custa dinheiro. O sinal precisa de movimento **rápido**, não só de direção correta.
@@ -204,10 +295,12 @@ Números acima são ilustrativos.
 - **Risco político/empresa**: Petrobras tem gaps por decisões do governo, preço de combustível e dividendos.
 - **Demo**: nem toda conta demo B3 tem opções, nem book realista delas.
 - **IR**: operações com opções não têm isenção. Swing 15%, day trade 20%.
+- **Put protetora**: o piso só vale no vencimento, cada perna paga spread, e o exercício com PETR4 entre os strikes exige capital. Detalhes na seção 6.
+- **Perna órfã**: se a call for fechada (stop no servidor, zeragem, erro) e a put continuar aberta, a operação vira aposta na baixa. O código precisa impedir isso.
 
 ---
 
-## 8. Plano de validação
+## 9. Plano de validação
 
 1. **🔬 Sinal no ativo**: EA de teste em **PETR4** no Strategy Tester só com os 4 indicadores e saídas por ATR. A pergunta é: o sinal prevê movimentos **grandes e rápidos o suficiente**?
 2. **Simulação das opções**: exportar os sinais em Python e estimar o resultado nas opções (Black-Scholes com a IV da época, ou o delta aproximado), **descontando theta e spread**.
@@ -218,12 +311,13 @@ Critério para avançar de fase: definir **antes** de começar (ex.: ≥ 30 sina
 
 ---
 
-## 9. Implementação (a fazer)
+## 10. Implementação (a fazer)
 
 - [ ] `mql5/Include/FinAI/OptionSelector.mqh`: encontra opções por ativo-objeto, tipo, vencimento e liquidez, e filtra pelas gregas
 - [ ] `mql5/Include/FinAI/BlackScholes.mqh`: prêmio teórico, IV implícita e gregas (quando a corretora não fornece)
 - [ ] `mql5/Include/FinAI/SignalScore.mqh`: os 4 indicadores e o score
 - [ ] `mql5/Experts/FinAI/Petr4SignalTest.mq5`: teste do sinal em PETR4 (etapa 1)
-- [ ] `mql5/Scripts/FinAI/Petr4OpcaoOCO.mq5`: script de ordem pré-preenchida com confirmação
-- [ ] `mql5/Experts/FinAI/Petr4OpcaoGerente.mq5`: saída pelo ativo-objeto (OCO caminho B)
+- [ ] `mql5/Include/FinAI/OperacaoPetr4.mqh`: estado da operação (nenhuma / pendente / call / call+put), regra de uma operação por vez, cálculo do piso
+- [ ] `mql5/Scripts/FinAI/Petr4Operacao.mq5`: script único com os 4 modos (entrada, proteção, status, fechamento das duas pernas) e confirmação
+- [ ] `mql5/Experts/FinAI/Petr4OpcaoGerente.mq5`: saída pelo ativo-objeto (OCO caminho B) e **guarda contra perna órfã** (fecha a put se a call sair)
 - [ ] `python/simular_opcoes.py`: estimativa do resultado nas opções a partir dos sinais
