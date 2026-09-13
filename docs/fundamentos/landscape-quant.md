@@ -1,3 +1,5 @@
+> ↩ [README](../../README.md) · Próximo passo prático: [agentes de IA sobre o MT5](../arquitetura-agentes-mt5.md)
+
 ## 🧠 Landscape: Quant / HFT / AI-driven trading firms
 
 A XTX Markets é um dos exemplos mais emblemáticos de como o mercado financeiro moderno está sendo dominado por empresas essencialmente tecnológicas.

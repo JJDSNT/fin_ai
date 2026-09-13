@@ -1,0 +1,16 @@
+# MQL5 compilado
+*.ex5
+*.ex4
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Dados exportados e relatórios do Strategy Tester (podem ser grandes)
+data/
+reports/
+
+# Credenciais
+.env

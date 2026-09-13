@@ -1,0 +1,3 @@
+# O pacote MetaTrader5 só existe para Windows: rode com o Python do Windows.
+MetaTrader5; sys_platform == "win32"
+pandas>=2.0
