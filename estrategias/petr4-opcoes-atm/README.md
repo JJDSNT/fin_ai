@@ -313,6 +313,13 @@ Critério para avançar de fase: definir **antes** de começar (ex.: ≥ 30 sina
 
 ## 10. Implementação (a fazer)
 
+Rastreamento em `AI_context/issues/`:
+- [ISSUE-0001](../../AI_context/issues/ISSUE-0001.md): ambiente MT5 + conta demo B3
+- [ISSUE-0002](../../AI_context/issues/ISSUE-0002.md): fechar as decisões em aberto
+- [ISSUE-0003](../../AI_context/issues/ISSUE-0003.md): validar o sinal em PETR4 (etapa 1)
+- [ISSUE-0004](../../AI_context/issues/ISSUE-0004.md): simular call + put protetora (etapa 2)
+- [ISSUE-0005](../../AI_context/issues/ISSUE-0005.md): o que a corretora oferece para opções
+
 - [ ] `mql5/Include/FinAI/OptionSelector.mqh`: encontra opções por ativo-objeto, tipo, vencimento e liquidez, e filtra pelas gregas
 - [ ] `mql5/Include/FinAI/BlackScholes.mqh`: prêmio teórico, IV implícita e gregas (quando a corretora não fornece)
 - [ ] `mql5/Include/FinAI/SignalScore.mqh`: os 4 indicadores e o score

@@ -31,6 +31,7 @@ Detalhes e checklists em [ROADMAP.md](ROADMAP.md).
 ```
 fin_ai/
 ├── ROADMAP.md                    # trilha de evolução com checklists
+├── AI_context/                   # issues: por quê, o quê, próximos passos de validação
 ├── docs/
 │   ├── fundamentos/              # base conceitual (conteúdo original)
 │   │   ├── agentes-financeiros.md
@@ -92,6 +93,7 @@ fin_ai/
 | Gestão de risco | [docs/metatrader/05-gestao-de-risco.md](docs/metatrader/05-gestao-de-risco.md) |
 | Agentes de IA sobre o MT5 | [docs/arquitetura-agentes-mt5.md](docs/arquitetura-agentes-mt5.md) |
 | 🎯 Minhas estratégias | [estrategias/](estrategias/README.md) |
+| 📋 Trabalho em andamento (issues) | [AI_context/](AI_context/README.md) |
 
 ---
 
